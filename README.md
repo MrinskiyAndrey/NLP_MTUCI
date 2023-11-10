@@ -1,5 +1,5 @@
 # NLP_MTUCI   
-1. Установа:
+1. Установка:
  ```
 docker-compose up
 ```
