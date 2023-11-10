@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="label_1">
+    Текст комментария
+</div>
+
+<form  method="post" enctype="multipart/form-data">
+    <div class="tewxtform_1">
+        <textarea name="comment" cols="50" rows="10"></textarea>
+
+        <br/>
+        <input type="radio" name="like" value="positive">Позитивный
+        <input type="radio" name="like" value="negative">Негативный
+
+        <br/> <br/>
+        <button type="submit">Отправить в базу данных</button>
+    </div>
+</form>
+
+{% endblock %}
