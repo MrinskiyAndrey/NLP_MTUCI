@@ -19,18 +19,29 @@ db.create_all()
 
 @app.route("/", methods=['POST', 'GET'])
 def index():
-    post = Post.query
+    #post = Post.query
     if request.method == 'POST':
         comment = request.form['comment']
-        like = request.form['like']
-        post = Post(comment=comment, like=like)
-
         try:
-            db.session.add(post)
-            db.session.commit()
-            return redirect('/')
+            like = request.form['like']
         except:
-            return "Ошибка при обращении к базе данных!"
+            like = None
+
+        if request.form['btn'] == 'to_ml':
+            try:
+                print(comment)
+                return render_template('index.html', retry_comment=comment)
+
+            except:
+                return "Ошибка при обращении к ML!"
+
+        elif request.form['btn'] == 'to_bd':
+            post = Post(comment=comment, like=like)
+            try:
+                db.session.add(post)
+                db.session.commit()
+                return render_template("index.html")
+            except:
+                return "Ошибка при обращении к базе данных!"
     else:
         return render_template("index.html")
-

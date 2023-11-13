@@ -7,14 +7,19 @@
 
 <form  method="post" enctype="multipart/form-data">
     <div class="tewxtform_1">
-        <textarea name="comment" cols="50" rows="10"></textarea>
+        <textarea name="comment" cols="50" rows="10">{{retry_comment}}</textarea>
+        <br/>
+        <button type="submit" name = 'btn' value="to_ml">Проверить</button>
 
+        <textarea name="forecast" cols="20" rows="1"></textarea>
         <br/>
         <input type="radio" name="like" value="positive">Позитивный
         <input type="radio" name="like" value="negative">Негативный
 
+
+
         <br/> <br/>
-        <button type="submit">Отправить в базу данных</button>
+        <button type="submit" name="btn" value="to_bd">Отправить в базу данных</button>
     </div>
 </form>
 
