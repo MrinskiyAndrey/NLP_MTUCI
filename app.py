@@ -16,10 +16,12 @@ class Post(db.Model):
 
 db.create_all()
 
+ML_result = "Негативный"
+
 
 @app.route("/", methods=['POST', 'GET'])
 def index():
-    #post = Post.query
+    # post = Post.query
     if request.method == 'POST':
         comment = request.form['comment']
         try:
@@ -30,7 +32,8 @@ def index():
         if request.form['btn'] == 'to_ml':
             try:
                 print(comment)
-                return render_template('index.html', retry_comment=comment)
+                #ML_result = request.get_json(pass)
+                return render_template('index.html', retry_comment=comment, ML_result=ML_result)
 
             except:
                 return "Ошибка при обращении к ML!"
@@ -43,5 +46,9 @@ def index():
                 return render_template("index.html")
             except:
                 return "Ошибка при обращении к базе данных!"
+
+        elif request.form['btn'] == 'reset':
+            return render_template("index.html")
+
     else:
         return render_template("index.html")

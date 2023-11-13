@@ -11,14 +11,17 @@
         <br/>
         <button type="submit" name = 'btn' value="to_ml">Проверить</button>
 
-        <textarea name="forecast" cols="20" rows="1"></textarea>
+        <textarea disabled name="forecast" cols="10" rows="1">{{ML_result}}</textarea>
+        <button type="submit" name='btn' value="reset">Очистить</button>
+        <br/>
+
         <br/>
         <input type="radio" name="like" value="positive">Позитивный
         <input type="radio" name="like" value="negative">Негативный
+        <br/>
 
 
-
-        <br/> <br/>
+        <br/>
         <button type="submit" name="btn" value="to_bd">Отправить в базу данных</button>
     </div>
 </form>
