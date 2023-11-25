@@ -2,11 +2,17 @@ from flask import Flask, render_template, url_for, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 import psycopg2
 from os import environ
-
+import fasttext
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DB_URL')
 db = SQLAlchemy(app)
+
+PATH_TO_MODEL = "/app/models/"
+MODEL_NAME = "1_model_1.bin"
+
+TEMP_FILE = "/app/tmp.txt"
+
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -16,8 +22,14 @@ class Post(db.Model):
 
 db.create_all()
 
-ML_result = "Негативный"
 
+def get_last_model(path_to_model: str):
+    import glob
+    import os
+
+    list_of_files = glob.glob(f'{path_to_model}*.bin')
+    latest_file = max(list_of_files, key=os.path.getctime)
+    return latest_file
 
 @app.route("/", methods=['POST', 'GET'])
 def index():
@@ -28,26 +40,19 @@ def index():
         except:
             like = None
 
-        #postgresql://postgres:postgres@flask_db:5432/postgres
-
         if request.form['btn'] == 'to_ml':
-            # try:
-            #     print(comment)
-            #     #ML_result = request.get_json(pass)
-            #     return render_template('index.html', retry_comment=comment, ML_result=ML_result)
-            #
-            # except:
-            #     return "Ошибка при обращении к ML!"
-            conn = psycopg2.connect(dbname="postgres", user="postgres", password="postgres", host="flask_db")
-            cursor = conn.cursor()
 
-            cursor.execute("SELECT * FROM public.post")
-            rows = cursor.fetchall()
+            last_file = get_last_model(PATH_TO_MODEL)
+            model = fasttext.load_model(last_file)
+            print("Идет распознование текста...")
+            pred_raw = model.predict(comment)
+            pred = pred_raw[0][0]
+            if pred == '__label__negative':
+                res = 'negative'
+            else:
+                res = 'positive'
+            return render_template('index.html', retry_comment=comment, ml_result=res)
 
-            cursor.close()  # закрываем курсор
-            conn.close()  # закрываем подключение
-
-            return render_template('index.html', retry_comment=comment, ml_result=rows)
         elif request.form['btn'] == 'to_bd':
             post = Post(comment=comment, like=like)
             try:
@@ -61,13 +66,6 @@ def index():
             return render_template("index.html")
 
         elif request.form['btn'] == 'to_learn':
-            # try:
-            #     print(comment)
-            #     #ML_result = request.get_json(pass)
-            #     return render_template('index.html', retry_comment=comment, ML_result=ML_result)
-            #
-            # except:
-            #     return "Ошибка при обращении к ML!"
             conn = psycopg2.connect(dbname="postgres", user="postgres", password="postgres", host="flask_db")
             cursor = conn.cursor()
 
@@ -77,7 +75,22 @@ def index():
             cursor.close()  # закрываем курсор
             conn.close()  # закрываем подключение
 
-            return render_template('index.html', retry_comment=comment, ml_result=rows)
+            rows_prep = [f"__label__{row[2]} {row[1]}\n" for row in rows]
+            with open(TEMP_FILE, 'w') as fp:
+                fp.writelines(rows_prep)
+
+            last_file = get_last_model(PATH_TO_MODEL)
+
+            pretrained_model = fasttext.load_model(last_file)
+
+            # Дообучение модели
+            pretrained_model.quantize(input=TEMP_FILE, retrain=True)
+            print("Идет дообучение модели...")
+            import time
+
+            pretrained_model.save_model(f'{PATH_TO_MODEL}{str(time.time()).split(".")[0]}.bin')
+
+            return render_template('index.html')
 
     else:
         return render_template("index.html")
